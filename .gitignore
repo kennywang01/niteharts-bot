@@ -1,6 +1,9 @@
 # form data
 form_data/*
 
+# ec2 ssh
+*.pem
+
 # screenshots
 screenshots/*
 

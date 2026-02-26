@@ -129,6 +129,74 @@ CMD ["python", "-m", "niteharts", "https://projectglow.frontgatetickets.com/even
 
 Screenshots are saved to `./screenshots/buy_ticket.png` relative to wherever the process runs.
 
+## Deployment
+
+Automates building the Docker image, updating the EC2 launch template, loading the SQS queue, and refreshing all ASG instances in one command.
+
+### Setup (first time)
+
+```bash
+pip install -r scripts/requirements.txt
+```
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Required `.env` keys:
+
+| Key | Description |
+|---|---|
+| `AWS_REGION` | e.g. `us-east-2` |
+| `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID |
+| `ECR_REPO` | e.g. `niteharts/niteharts-docker` |
+| `ASG_NAME` | Auto Scaling Group name |
+| `LAUNCH_TEMPLATE_NAME` | EC2 launch template name |
+| `SQS_QUEUE_URL` | Full SQS queue URL |
+| `ROLE_ARN` | IAM role to assume for AWS ops |
+| `TWOCAPTCHA_API_KEY` | 2captcha API key |
+| `EVENT_URL` | Target event URL |
+
+### Commands
+
+**Run all 4 steps in sequence:**
+```bash
+python scripts/deploy.py
+```
+
+**Run individual steps:**
+```bash
+python scripts/deploy.py --docker-image       # Build & push Docker image to ECR
+python scripts/deploy.py --launch-template    # Upload user data to launch template
+python scripts/deploy.py --refill-queue       # Purge & reload SQS with buyer configs
+python scripts/deploy.py --refresh-instances  # Trigger ASG rolling instance refresh
+```
+
+**Combine steps:**
+```bash
+python scripts/deploy.py --refill-queue --refresh-instances
+python scripts/deploy.py --launch-template --refresh-instances
+```
+
+### What each step does
+
+| Flag | What it does |
+|---|---|
+| `--docker-image` | Authenticates with ECR, builds from `scripts/ecr/Dockerfile`, tags and pushes to ECR |
+| `--launch-template` | Renders `scripts/ec2_user_data.bash` with secrets from `.env`, creates a new launch template version, updates ASG to use `$Latest` |
+| `--refill-queue` | Purges the SQS queue and enqueues one message per entry in `form_data/niteharts_configs.json` |
+| `--refresh-instances` | Starts a rolling ASG instance refresh with `MinHealthyPercentage=0` (replaces all instances simultaneously) |
+
+### Before running
+
+1. Update `form_data/niteharts_configs.json` with one buyer config object per instance
+2. Ensure AWS credentials are configured locally (`~/.aws/credentials` or env vars)
+3. Ensure Docker is running locally (required for `--docker-image`)
+
+---
+
 ## Verifying Setup
 
 Run the config test script to confirm your environment variables and form inputs are valid:
