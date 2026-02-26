@@ -153,11 +153,15 @@ Required `.env` keys:
 | `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID |
 | `ECR_REPO` | e.g. `niteharts/niteharts-docker` |
 | `ASG_NAME` | Auto Scaling Group name |
+| `CAPACITY` | Number of EC2 instances (sets min = desired = max) |
 | `LAUNCH_TEMPLATE_NAME` | EC2 launch template name |
 | `SQS_QUEUE_URL` | Full SQS queue URL |
 | `ROLE_ARN` | IAM role to assume for AWS ops |
 | `TWOCAPTCHA_API_KEY` | 2captcha API key |
 | `EVENT_URL` | Target event URL |
+| `KEY_PAIR_NAME` | EC2 key pair name for SSH access |
+| `INSTANCE_PROFILE_ARN` | ARN of the EC2 IAM instance profile |
+| `SECURITY_GROUP_ID` | Security group ID to attach to instances |
 
 ### Commands
 
