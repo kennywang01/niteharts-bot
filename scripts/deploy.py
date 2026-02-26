@@ -19,6 +19,7 @@ REQUIRED_VARS = [
     "AWS_ACCOUNT_ID",
     "ECR_REPO",
     "ASG_NAME",
+    "CAPACITY",
     "LAUNCH_TEMPLATE_NAME",
     "SQS_QUEUE_URL",
     "ROLE_ARN",
@@ -106,14 +107,18 @@ def step2_user_data():
     )["LaunchTemplateVersion"]["VersionNumber"]
     print(f"      Created launch template version {new_version}.")
 
+    capacity = int(os.environ["CAPACITY"])
     asg.update_auto_scaling_group(
         AutoScalingGroupName=os.environ["ASG_NAME"],
         LaunchTemplate={
             "LaunchTemplateName": os.environ["LAUNCH_TEMPLATE_NAME"],
             "Version": "$Latest",
         },
+        MinSize=capacity,
+        MaxSize=capacity,
+        DesiredCapacity=capacity,
     )
-    print("      ASG updated to use $Latest.")
+    print(f"      ASG updated to use $Latest, capacity={capacity}.")
 
 
 def step3_sqs_configs():
