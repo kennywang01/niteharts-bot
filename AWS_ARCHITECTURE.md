@@ -110,12 +110,3 @@ Each container receives:
 | `form_inputs.json` | Volume mount from host EC2 (`/home/ec2-user/form_inputs.json` → `/app/form_inputs.json`) |
 
 ---
-
-## Local Scripts
-
-| Script | Purpose |
-|---|---|
-| `build_and_push.bash` | Build Docker image and push to ECR |
-| `scripts/update_niteharts_configs.py` | Enqueue buyer configs into SQS before launch |
-| `scripts/ec2_user_data.bash` | Runs on each EC2 at boot — claims config, pulls image, runs container |
-| `scripts/test_config.py` | Verify env vars and form inputs are valid before running |
