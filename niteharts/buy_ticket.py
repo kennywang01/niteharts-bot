@@ -11,8 +11,12 @@ def buy_ticket(event_url: str) -> None:
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,
-            args=["--disable-cache"],
+            headless=True,
+            args=[
+                "--disable-cache",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+            ],
         )
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
