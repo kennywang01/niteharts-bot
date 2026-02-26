@@ -24,6 +24,7 @@ REQUIRED_VARS = [
     "ROLE_ARN",
     "TWOCAPTCHA_API_KEY",
     "EVENT_URL",
+    "KEY_PAIR_NAME",
 ]
 
 
@@ -92,7 +93,7 @@ def step2_user_data():
     new_version = ec2.create_launch_template_version(
         LaunchTemplateName=os.environ["LAUNCH_TEMPLATE_NAME"],
         SourceVersion="$Latest",
-        LaunchTemplateData={"UserData": user_data_b64, "InstanceType": "c7a.medium", "ImageId": "ami-09256c524fab91d36"},
+        LaunchTemplateData={"UserData": user_data_b64, "InstanceType": "c7a.medium", "ImageId": "ami-09256c524fab91d36", "KeyName": os.environ["KEY_PAIR_NAME"]},
     )["LaunchTemplateVersion"]["VersionNumber"]
     print(f"      Created launch template version {new_version}.")
 
