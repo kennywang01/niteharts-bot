@@ -243,12 +243,8 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             page.wait_for_timeout(120_000)
             logger.info("Purchase submitted — confirmation page loaded")
 
-            try:
-                _report_ticket_purchase(int(form.ticket_quantity))
-                logger.info("Reported %s ticket(s) purchased to CloudWatch", form.ticket_quantity)
-            except Exception as e:
-                logger.warning("Failed to report to CloudWatch: %s", e)
-
+            _report_ticket_purchase(int(form.ticket_quantity))
+            logger.info("Reported %s ticket(s) purchased to CloudWatch", form.ticket_quantity)
         except Exception as e:
             logger.error("Error during ticket purchase: %s", e, exc_info=True)
             if debug:

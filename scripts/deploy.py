@@ -113,7 +113,7 @@ def step2_user_data():
         SourceVersion="$Latest",
         LaunchTemplateData={
                 "UserData": user_data_b64,
-                "InstanceType": "c7a.medium",
+                "InstanceType": "t3a.small",
                 "ImageId": "ami-09256c524fab91d36",
                 "KeyName": os.environ["KEY_PAIR_NAME"],
                 "IamInstanceProfile": {"Arn": os.environ["INSTANCE_PROFILE_ARN"]},
