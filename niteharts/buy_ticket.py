@@ -77,6 +77,7 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
         )
         page = context.new_page()
+
         # Wait until the "Select Tickets" button is present on the page
         _wait_for_select_tickets(page)
 
