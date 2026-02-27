@@ -7,21 +7,12 @@ from .captcha_solver import CaptchaSolver
 from .form_data import load_form_data
 
 
-def _wait_for_page_change(page, check_interval_seconds: float = 1.0, max_wait_minutes: float = 60.0) -> None:
-    baseline_html = page.content()
-    deadline = time.time() + max_wait_minutes * 60.0
-
-    while True:
-        if time.time() > deadline:
-            raise TimeoutError("Timed out waiting for page to change on Front Gate Tickets.")
-
-        page.wait_for_timeout(int(check_interval_seconds * 1000))
-        page.reload()
-        page.wait_for_load_state("networkidle")
-
-        current_html = page.content()
-        if current_html != baseline_html:
-            return
+def _wait_for_select_tickets(page, max_wait_minutes: float = 60.0) -> None:
+    timeout_ms = max_wait_minutes * 60_000
+    page.get_by_role("link", name="Select Tickets").first.wait_for(
+        state="visible",
+        timeout=timeout_ms,
+    )
 
 
 def buy_ticket(event_url: str) -> None:
@@ -42,8 +33,8 @@ def buy_ticket(event_url: str) -> None:
         page = context.new_page()
         page.goto(event_url)
 
-        # keep refreshing until the event page changes, then continue immediately
-        _wait_for_page_change(page)
+        # Wait until the "Select Tickets" button is present on the page
+        _wait_for_select_tickets(page)
 
         # log into frontgatetickets
         page.get_by_role("menuitem", name="Sign In").click()
