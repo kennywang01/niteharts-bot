@@ -6,6 +6,14 @@ from .captcha_solver import CaptchaSolver
 from .form_data import load_form_data
 
 
+def _wait_for_select_tickets(page, max_wait_minutes: float = 60.0) -> None:
+    timeout_ms = max_wait_minutes * 60_000
+    page.get_by_role("link", name="Select Tickets").first.wait_for(
+        state="visible",
+        timeout=timeout_ms,
+    )
+
+
 def buy_ticket(event_url: str) -> None:
     form = load_form_data()
 
@@ -23,6 +31,9 @@ def buy_ticket(event_url: str) -> None:
         )
         page = context.new_page()
         page.goto(event_url)
+
+        # Wait until the "Select Tickets" button is present on the page
+        _wait_for_select_tickets(page)
 
         # log into frontgatetickets
         page.get_by_role("menuitem", name="Sign In").click()
