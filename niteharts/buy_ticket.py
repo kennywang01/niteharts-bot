@@ -1,9 +1,64 @@
 import os
+import time
 from pathlib import Path
+
+import boto3
 from playwright.sync_api import sync_playwright
 
 from .captcha_solver import CaptchaSolver
 from .form_data import load_form_data
+
+
+def _wait_for_select_tickets(page, max_wait_minutes: float = 60.0) -> None:
+    timeout_ms = max_wait_minutes * 60_000
+    page.get_by_role("link", name="Select Tickets").first.wait_for(
+        state="visible",
+        timeout=timeout_ms,
+    )
+
+
+def _report_ticket_purchase(ticket_count: int) -> None:
+    region = os.environ.get("AWS_REGION")
+    if not region:
+        return
+
+    cloudwatch = boto3.client("cloudwatch", region_name=region)
+    cloudwatch.put_metric_data(
+        Namespace="Niteharts/Tickets",
+        MetricData=[
+            {
+                "MetricName": "TicketsPurchased",
+                "Value": float(ticket_count),
+                "Unit": "Count",
+            }
+        ],
+    )
+
+
+def _wait_for_select_tickets(page, max_wait_minutes: float = 60.0) -> None:
+    timeout_ms = max_wait_minutes * 60_000
+    page.get_by_role("link", name="Select Tickets").first.wait_for(
+        state="visible",
+        timeout=timeout_ms,
+    )
+
+
+def _report_ticket_purchase(ticket_count: int) -> None:
+    region = os.environ.get("AWS_REGION")
+    if not region:
+        return
+
+    cloudwatch = boto3.client("cloudwatch", region_name=region)
+    cloudwatch.put_metric_data(
+        Namespace="Niteharts/Tickets",
+        MetricData=[
+            {
+                "MetricName": "TicketsPurchased",
+                "Value": float(ticket_count),
+                "Unit": "Count",
+            }
+        ],
+    )
 
 
 def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> None:
@@ -22,6 +77,9 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
         )
         page = context.new_page()
+        # Wait until the "Select Tickets" button is present on the page
+        _wait_for_select_tickets(page)
+
         try:
             page.goto(event_url)
 
@@ -170,6 +228,12 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             # purchase tickets
             page.get_by_role("button", name="Purchase Tickets").click()
             page.wait_for_load_state("networkidle")
+
+            # report successful purchase to CloudWatch (for alarm-based shutdown)
+            try:
+                _report_ticket_purchase(int(form.ticket_quantity))
+            except Exception:
+                pass
 
             # screenshot order confirmation
             screenshot_dir = Path.cwd() / "screenshots"
