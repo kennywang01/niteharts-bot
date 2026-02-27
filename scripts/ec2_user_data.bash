@@ -58,6 +58,10 @@ docker pull $ECR_URI
 # Run the container
 echo "Running niteharts..."
 docker run --rm \
+  --log-driver=awslogs \
+  --log-opt awslogs-region=$AWS_REGION \
+  --log-opt awslogs-group=/niteharts \
+  --log-opt awslogs-stream=$INSTANCE_ID \
   -e TWOCAPTCHA_API_KEY=$TWOCAPTCHA_API_KEY \
   -e EVENT_URL=$EVENT_URL \
   -v $FORM_INPUTS_PATH:/app/form_inputs.json \

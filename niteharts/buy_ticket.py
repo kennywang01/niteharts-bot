@@ -219,7 +219,7 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
 
             logger.info("Submitting purchase")
             page.get_by_role("button", name="Purchase Tickets").click()
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             logger.info("Purchase submitted — confirmation page loaded")
 
             try:

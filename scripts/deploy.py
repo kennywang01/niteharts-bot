@@ -85,6 +85,13 @@ def step1_build_push():
 def step2_user_data():
     print("\n[2/4] Uploading user data to launch template...")
 
+    logs = get_assumed_role_client("logs")
+    try:
+        logs.create_log_group(logGroupName="/niteharts")
+        print("      Created CloudWatch log group /niteharts.")
+    except logs.exceptions.ResourceAlreadyExistsException:
+        print("      CloudWatch log group /niteharts already exists.")
+
     template = USER_DATA_TEMPLATE.read_text()
     rendered = template.replace("@@TWOCAPTCHA_API_KEY@@", os.environ["TWOCAPTCHA_API_KEY"])
     rendered = rendered.replace("@@EVENT_URL@@", os.environ["EVENT_URL"])
