@@ -16,7 +16,7 @@ RUN playwright install --with-deps chromium
 ENV TWOCAPTCHA_API_KEY="ee243aca55a6e389ead2c3bca217da85"
 ENV EVENT_URL="https://nitehartsfestival.frontgatetickets.com/"
 
-CMD ["python", "-m", "niteharts", "--version"]
+# CMD ["python", "-m", "niteharts", "--version"]
 
 # Running main
-# CMD ["sh", "-c", "python -m niteharts \"$EVENT_URL\""]
+CMD ["sh", "-c", "python -m niteharts \"$EVENT_URL\" --headless"]
