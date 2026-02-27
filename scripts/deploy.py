@@ -129,7 +129,7 @@ def step2_user_data():
             "LaunchTemplateName": os.environ["LAUNCH_TEMPLATE_NAME"],
             "Version": "$Latest",
         },
-        MinSize=capacity,
+        MinSize=0,
         MaxSize=capacity,
         DesiredCapacity=capacity,
     )

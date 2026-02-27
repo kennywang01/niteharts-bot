@@ -38,6 +38,23 @@ def _report_ticket_purchase(ticket_count: int) -> None:
     )
 
 
+def _take_screenshot(page, email: str) -> None:
+    screenshot_dir = Path.cwd() / "screenshots"
+    screenshot_dir.mkdir(exist_ok=True)
+    screenshot_path = screenshot_dir / "buy_ticket.png"
+    page.screenshot(path=str(screenshot_path), full_page=True)
+    logger.info("Screenshot saved to %s", screenshot_path)
+
+    s3_bucket = os.getenv("S3_BUCKET")
+    deploy_id = os.getenv("DEPLOY_ID")
+    if s3_bucket and deploy_id:
+        s3_key = f"{deploy_id}/{email}_buy_ticket.png"
+        boto3.client("s3", region_name=os.getenv("AWS_REGION")).upload_file(
+            str(screenshot_path), s3_bucket, s3_key
+        )
+        logger.info("Screenshot uploaded to s3://%s/%s", s3_bucket, s3_key)
+
+
 def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> None:
     form = load_form_data()
     logger.info("Starting buy_ticket: url=%s headless=%s", event_url, headless)
@@ -232,21 +249,6 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             except Exception as e:
                 logger.warning("Failed to report to CloudWatch: %s", e)
 
-            screenshot_dir = Path.cwd() / "screenshots"
-            screenshot_dir.mkdir(exist_ok=True)
-            screenshot_path = screenshot_dir / "buy_ticket.png"
-            page.screenshot(path=str(screenshot_path), full_page=True)
-            logger.info("Screenshot saved to %s", screenshot_path)
-
-            s3_bucket = os.getenv("S3_BUCKET")
-            deploy_id = os.getenv("DEPLOY_ID")
-            if s3_bucket and deploy_id:
-                s3_key = f"{deploy_id}/{form.email}_buy_ticket.png"
-                boto3.client("s3", region_name=os.getenv("AWS_REGION")).upload_file(
-                    str(screenshot_path), s3_bucket, s3_key
-                )
-                logger.info("Screenshot uploaded to s3://%s/%s", s3_bucket, s3_key)
-
         except Exception as e:
             logger.error("Error during ticket purchase: %s", e, exc_info=True)
             if debug:
@@ -254,6 +256,7 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
                 page.pause()
             raise
         finally:
+            _take_screenshot(page, form.email)
             context.close()
             browser.close()
             logger.info("Browser closed")
