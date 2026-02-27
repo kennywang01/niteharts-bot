@@ -234,6 +234,15 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             page.screenshot(path=str(screenshot_path), full_page=True)
             logger.info("Screenshot saved to %s", screenshot_path)
 
+            s3_bucket = os.getenv("S3_BUCKET")
+            deploy_id = os.getenv("DEPLOY_ID")
+            if s3_bucket and deploy_id:
+                s3_key = f"{deploy_id}/{form.email}_buy_ticket.png"
+                boto3.client("s3", region_name=os.getenv("AWS_REGION")).upload_file(
+                    str(screenshot_path), s3_bucket, s3_key
+                )
+                logger.info("Screenshot uploaded to s3://%s/%s", s3_bucket, s3_key)
+
         except Exception as e:
             logger.error("Error during ticket purchase: %s", e, exc_info=True)
             if debug:

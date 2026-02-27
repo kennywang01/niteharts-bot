@@ -8,6 +8,8 @@ ECR_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/niteharts/niteharts-d
 SQS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/$AWS_ACCOUNT_ID/niteharts-configs"
 TWOCAPTCHA_API_KEY="@@TWOCAPTCHA_API_KEY@@"
 EVENT_URL="@@EVENT_URL@@"
+DEPLOY_ID="@@DEPLOY_ID@@"
+S3_BUCKET="@@S3_BUCKET@@"
 FORM_INPUTS_PATH="/home/ec2-user/form_inputs.json"
 
 # Install Docker (Amazon Linux 2023)
@@ -62,7 +64,10 @@ docker run --rm \
   --log-opt awslogs-region=$AWS_REGION \
   --log-opt awslogs-group=/niteharts \
   --log-opt awslogs-stream=$INSTANCE_ID \
+  -e AWS_REGION=$AWS_REGION \
   -e TWOCAPTCHA_API_KEY=$TWOCAPTCHA_API_KEY \
   -e EVENT_URL=$EVENT_URL \
+  -e DEPLOY_ID=$DEPLOY_ID \
+  -e S3_BUCKET=$S3_BUCKET \
   -v $FORM_INPUTS_PATH:/app/form_inputs.json \
   $ECR_URI

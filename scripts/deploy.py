@@ -4,6 +4,8 @@ import json
 import os
 import subprocess
 import sys
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import boto3
@@ -28,6 +30,7 @@ REQUIRED_VARS = [
     "KEY_PAIR_NAME",
     "INSTANCE_PROFILE_ARN",
     "SECURITY_GROUP_ID",
+    "S3_BUCKET",
 ]
 
 
@@ -74,7 +77,7 @@ def step1_build_push():
     )
 
     subprocess.run(
-        ["docker", "build", "-f", str(DOCKERFILE), "-t", "niteharts", str(ROOT)],
+        ["docker", "build", "--no-cache", "-f", str(DOCKERFILE), "-t", "niteharts", str(ROOT)],
         check=True,
     )
     subprocess.run(["docker", "tag", "niteharts:latest", ecr_uri], check=True)
@@ -92,9 +95,14 @@ def step2_user_data():
     except logs.exceptions.ResourceAlreadyExistsException:
         print("      CloudWatch log group /niteharts already exists.")
 
+    deploy_id = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
+    print(f"      Deploy ID: {deploy_id}")
+
     template = USER_DATA_TEMPLATE.read_text()
     rendered = template.replace("@@TWOCAPTCHA_API_KEY@@", os.environ["TWOCAPTCHA_API_KEY"])
     rendered = rendered.replace("@@EVENT_URL@@", os.environ["EVENT_URL"])
+    rendered = rendered.replace("@@DEPLOY_ID@@", deploy_id)
+    rendered = rendered.replace("@@S3_BUCKET@@", os.environ["S3_BUCKET"])
     user_data_b64 = base64.b64encode(rendered.encode()).decode()
 
     ec2 = get_assumed_role_client("ec2")

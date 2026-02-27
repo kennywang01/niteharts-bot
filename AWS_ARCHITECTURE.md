@@ -26,6 +26,13 @@ N EC2 instances run in parallel (configured via `CAPACITY` env var), each purcha
 - Stores the niteharts Docker image
 - Built and pushed by `scripts/deploy.py --docker-image`
 
+### CloudWatch Logs — `/niteharts`
+- **Log group:** `/niteharts`
+- One log stream per EC2 instance, named by `$INSTANCE_ID`
+- Container stdout (Python `logging` output from `buy_ticket.py`) is streamed via Docker's `awslogs` log driver
+- Log group is pre-created by `deploy.py --launch-template`; streams are created automatically when each container starts
+- View logs: AWS Console → CloudWatch → Log groups → `/niteharts`
+
 ### SQS Queue — `niteharts-configs`
 - **URL:** `https://sqs.us-east-2.amazonaws.com/701154485405/niteharts-configs`
 - **Type:** Standard queue
@@ -49,6 +56,9 @@ Required permissions:
 | `ecr:GetAuthorizationToken` | `*` |
 | `ecr:BatchGetImage` | `arn:aws:ecr:us-east-2:701154485405:repository/niteharts/niteharts-docker` |
 | `ecr:GetDownloadUrlForLayer` | `arn:aws:ecr:us-east-2:701154485405:repository/niteharts/niteharts-docker` |
+| `logs:CreateLogStream` | `arn:aws:logs:us-east-2:701154485405:log-group:/niteharts:*` |
+| `logs:PutLogEvents` | `arn:aws:logs:us-east-2:701154485405:log-group:/niteharts:*` |
+| `logs:DescribeLogStreams` | `arn:aws:logs:us-east-2:701154485405:log-group:/niteharts:*` |
 
 ### IAM User — `kennywang`
 Used locally to run `scripts/deploy.py`.
@@ -72,6 +82,8 @@ Required permissions:
 | `ec2:DescribeLaunchTemplates` | `*` |
 | `autoscaling:UpdateAutoScalingGroup` | `arn:aws:autoscaling:us-east-2:701154485405:autoScalingGroup:*:autoScalingGroupName/niteharts-autoscaling` |
 | `autoscaling:StartInstanceRefresh` | same |
+| `logs:CreateLogGroup` | `arn:aws:logs:us-east-2:701154485405:log-group:/niteharts` |
+| `logs:DescribeLogGroups` | `*` |
 
 ---
 

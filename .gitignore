@@ -7,6 +7,9 @@ form_data/*
 # screenshots
 screenshots/*
 
+# user generation
+user_generation
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
