@@ -209,7 +209,11 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
             logger.info("Payment details filled")
 
             logger.info("Declining ticket insurance")
-            page.get_by_role("radio", name="No, don't protect my $").check()
+            try:
+                page.get_by_role("radio", name="No, don't protect my $").check()
+            except:
+                logging.info("No ticket insurance offered - skipping...")
+                pass
             page.get_by_role("button", name="Next").click()
 
             logger.info("Accepting terms and conditions")
@@ -219,7 +223,7 @@ def buy_ticket(event_url: str, headless: bool = False, debug: bool = False) -> N
 
             logger.info("Submitting purchase")
             page.get_by_role("button", name="Purchase Tickets").click()
-            page.wait_for_load_state("load")
+            page.wait_for_timeout(120_000)
             logger.info("Purchase submitted — confirmation page loaded")
 
             try:
