@@ -1,5 +1,8 @@
 import os
+import time
 from pathlib import Path
+
+import boto3
 from playwright.sync_api import sync_playwright
 
 from .captcha_solver import CaptchaSolver
@@ -11,6 +14,24 @@ def _wait_for_select_tickets(page, max_wait_minutes: float = 60.0) -> None:
     page.get_by_role("link", name="Select Tickets").first.wait_for(
         state="visible",
         timeout=timeout_ms,
+    )
+
+
+def _report_ticket_purchase(ticket_count: int) -> None:
+    region = os.environ.get("AWS_REGION")
+    if not region:
+        return
+
+    cloudwatch = boto3.client("cloudwatch", region_name=region)
+    cloudwatch.put_metric_data(
+        Namespace="Niteharts/Tickets",
+        MetricData=[
+            {
+                "MetricName": "TicketsPurchased",
+                "Value": float(ticket_count),
+                "Unit": "Count",
+            }
+        ],
     )
 
 
@@ -152,6 +173,12 @@ def buy_ticket(event_url: str) -> None:
 
         # purchase tickets
         page.get_by_role("button", name="Purchase Tickets").click()
+
+        # report successful purchase to CloudWatch (for alarm-based shutdown)
+        try:
+            _report_ticket_purchase(int(form.ticket_quantity))
+        except Exception:
+            pass
 
         # verify credit card
 
